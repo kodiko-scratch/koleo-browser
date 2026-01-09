@@ -1,0 +1,37 @@
+;*** BEGIN **********************************************************
+;**                                                                **
+;** Automatically generated on: Fri Jan 09 20:33:00 2026           **
+;**                                                                **
+;** MakeCAB Version: 5.00                                 **
+;**                                                                **
+;*** BEGIN **********************************************************
+[disk list]
+1,Disk 1
+[cabinet list]
+1,1,koleo.cab
+[file list]
+1,1,desktop_webview_window_plugin.dll,182784
+1,1,flutter_windows.dll,18511872
+1,1,install.bat,692
+1,1,koleo_browser.exe,97792
+1,1,native_assets.json,45
+1,1,url_launcher_windows_plugin.dll,98304
+1,1,WebView2Loader.dll,142264
+1,1,webview_windows_plugin.dll,487936
+1,1,app.so,5342128
+1,1,icudtl.dat,778864
+1,1,AssetManifest.bin,205
+1,1,FontManifest.json,82
+1,1,NativeAssetsManifest.json,45
+1,1,NOTICES.Z,108194
+1,1,koleo_logo.ico,41086
+1,1,koleo_logo.png,3685
+1,1,README.md,225
+1,1,MaterialIcons-Regular.otf,1645184
+1,1,ink_sparkle.frag,21320
+1,1,stretch_effect.frag,17368
+;*** END ************************************************************
+;**                                                                **
+;** Automatically generated on: Fri Jan 09 20:33:00 2026           **
+;**                                                                **
+;*** END ************************************************************

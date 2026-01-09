@@ -1,0 +1,74 @@
+name: koleo_browser
+description: "Koleo - кроссплатформенный веб-браузер с минималистичным дизайном"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Embedded WebView for Windows
+  webview_windows: ^0.4.0
+  
+  # WebView for macOS/iOS
+  webview_flutter: ^4.10.0
+  webview_flutter_wkwebview: ^3.16.3
+  
+  # State management
+  provider: ^6.1.2
+  
+  # Local storage
+  shared_preferences: ^2.3.3
+  
+  # UUID generation for tabs
+  uuid: ^4.5.1
+  
+  # Path utilities
+  path_provider: ^2.1.5
+  
+  # URL launcher
+  url_launcher: ^6.3.1
+  
+  # Windows API for custom title bar
+  win32: ^5.5.0
+  ffi: ^2.1.0
+  
+  # HTTP client for VPN subscriptions
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  
+  # Property-based testing
+  glados: ^1.1.1
+  msix: ^3.16.12
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/wallpapers/
+    - assets/logo/
+
+  # Uncomment when GoogleSans-Bold.ttf is added to assets/fonts/
+  # fonts:
+  #   - family: Google Sans
+  #     fonts:
+  #       - asset: assets/fonts/GoogleSans-Bold.ttf
+  #         weight: 700
+
+msix_config:
+  display_name: Koleo Browser
+  publisher_display_name: Koleo
+  identity_name: com.koleo.browser
+  msix_version: 1.0.0.0
+  logo_path: assets/logo/koleo_logo.png
+  capabilities: internetClient
+  languages: ru-RU, en-US
+  install_certificate: false
