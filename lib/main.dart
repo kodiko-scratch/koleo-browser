@@ -5,8 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/app_settings.dart';
 import 'services/services.dart';
 import 'services/vpn_service.dart';
+import 'services/update_service.dart';
 import 'ui/screens/screens.dart';
 import 'ui/screens/vpn_screen.dart';
+import 'ui/widgets/update_dialog.dart';
 import 'ui/theme/theme.dart';
 
 /// Alias for Flutter's ThemeMode to avoid conflict with AppSettings.ThemeMode
@@ -46,6 +48,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
   late SecuritySystem _securitySystem;
   late WallpaperService _wallpaperService;
   late VpnService _vpnService;
+  late UpdateService _updateService;
   late AppSettings _currentSettings;
 
   @override
@@ -74,6 +77,9 @@ class _KoleoAppState extends material.State<KoleoApp> {
     // Initialize VPN Service
     _vpnService = VpnService();
     _vpnService.init();
+    
+    // Initialize Update Service
+    _updateService = UpdateService();
   }
 
   void _listenToSettingsChanges() {
@@ -90,6 +96,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
   void dispose() {
     _tabManager.dispose();
     _vpnService.dispose();
+    _updateService.dispose();
     widget.settingsManager.dispose();
     super.dispose();
   }
@@ -115,6 +122,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
         Provider<SecuritySystem>.value(value: _securitySystem),
         Provider<WallpaperService>.value(value: _wallpaperService),
         ChangeNotifierProvider<VpnService>.value(value: _vpnService),
+        ChangeNotifierProvider<UpdateService>.value(value: _updateService),
         Provider<SettingsManager>.value(value: widget.settingsManager),
       ],
       child: material.MaterialApp(
@@ -129,6 +137,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
           securitySystem: _securitySystem,
           wallpaperService: _wallpaperService,
           vpnService: _vpnService,
+          updateService: _updateService,
           settingsManager: widget.settingsManager,
         ),
       ),
@@ -146,6 +155,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
   final SecuritySystem securitySystem;
   final WallpaperService wallpaperService;
   final VpnService vpnService;
+  final UpdateService updateService;
   final SettingsManager settingsManager;
 
   const KoleoBrowserShell({
@@ -155,6 +165,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
     required this.securitySystem,
     required this.wallpaperService,
     required this.vpnService,
+    required this.updateService,
     required this.settingsManager,
   });
 
@@ -165,6 +176,26 @@ class KoleoBrowserShell extends material.StatefulWidget {
 class _KoleoBrowserShellState extends material.State<KoleoBrowserShell> {
   bool _showSettings = false;
   bool _showVpn = false;
+  bool _updateChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for updates after first frame
+    material.WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdates();
+    });
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (_updateChecked) return;
+    _updateChecked = true;
+    
+    final hasUpdate = await widget.updateService.checkForUpdates();
+    if (hasUpdate && mounted) {
+      UpdateDialog.show(context, widget.updateService);
+    }
+  }
 
   void _openSettings() {
     setState(() {
