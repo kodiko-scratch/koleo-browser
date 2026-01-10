@@ -22,6 +22,7 @@ INavigationController createNavigationController({
   void Function(String url)? onLoadFinish,
   VoidCallback? onWebViewClosed,
   void Function(String url)? onNewWindowRequested,
+  void Function(String url, String? suggestedFileName)? onDownloadRequested,
 }) {
   if (Platform.isWindows) {
     return windows.NavigationControllerImpl(
@@ -30,6 +31,7 @@ INavigationController createNavigationController({
       onLoadFinish: onLoadFinish,
       onWebViewClosed: onWebViewClosed,
       onNewWindowRequested: onNewWindowRequested,
+      onDownloadRequested: onDownloadRequested,
     );
   } else if (Platform.isMacOS) {
     return macos.NavigationControllerImpl(

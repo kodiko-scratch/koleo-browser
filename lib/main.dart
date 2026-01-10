@@ -6,6 +6,7 @@ import 'models/app_settings.dart';
 import 'services/services.dart';
 import 'services/vpn_service.dart';
 import 'services/update_service.dart';
+import 'services/download_service.dart';
 import 'ui/screens/screens.dart';
 import 'ui/screens/vpn_screen.dart';
 import 'ui/widgets/update_dialog.dart';
@@ -49,6 +50,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
   late WallpaperService _wallpaperService;
   late VpnService _vpnService;
   late UpdateService _updateService;
+  late DownloadService _downloadService;
   late AppSettings _currentSettings;
 
   @override
@@ -80,6 +82,9 @@ class _KoleoAppState extends material.State<KoleoApp> {
     
     // Initialize Update Service
     _updateService = UpdateService();
+    
+    // Initialize Download Service
+    _downloadService = DownloadService();
   }
 
   void _listenToSettingsChanges() {
@@ -97,6 +102,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
     _tabManager.dispose();
     _vpnService.dispose();
     _updateService.dispose();
+    _downloadService.dispose();
     widget.settingsManager.dispose();
     super.dispose();
   }
@@ -123,6 +129,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
         Provider<WallpaperService>.value(value: _wallpaperService),
         ChangeNotifierProvider<VpnService>.value(value: _vpnService),
         ChangeNotifierProvider<UpdateService>.value(value: _updateService),
+        ChangeNotifierProvider<DownloadService>.value(value: _downloadService),
         Provider<SettingsManager>.value(value: widget.settingsManager),
       ],
       child: material.MaterialApp(
@@ -138,6 +145,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
           wallpaperService: _wallpaperService,
           vpnService: _vpnService,
           updateService: _updateService,
+          downloadService: _downloadService,
           settingsManager: widget.settingsManager,
         ),
       ),
@@ -156,6 +164,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
   final WallpaperService wallpaperService;
   final VpnService vpnService;
   final UpdateService updateService;
+  final DownloadService downloadService;
   final SettingsManager settingsManager;
 
   const KoleoBrowserShell({
@@ -166,6 +175,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
     required this.wallpaperService,
     required this.vpnService,
     required this.updateService,
+    required this.downloadService,
     required this.settingsManager,
   });
 

@@ -2,7 +2,6 @@
 library;
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'navigation_controller_interface.dart';
@@ -21,6 +20,7 @@ class NavigationControllerImpl extends ChangeNotifier implements INavigationCont
   final void Function(String url)? onLoadFinish;
   final VoidCallback? onWebViewClosed;
   final void Function(String url)? onNewWindowRequested;
+  final void Function(String url, String? suggestedFileName)? onDownloadRequested;
 
   NavigationControllerImpl({
     this.onUrlChanged,
@@ -28,6 +28,7 @@ class NavigationControllerImpl extends ChangeNotifier implements INavigationCont
     this.onLoadFinish,
     this.onWebViewClosed,
     this.onNewWindowRequested,
+    this.onDownloadRequested,
   });
 
   /// The WebView controller for embedding in widgets.
@@ -97,12 +98,24 @@ class NavigationControllerImpl extends ChangeNotifier implements INavigationCont
 
     _webviewController.webMessage.listen((message) {
       try {
-        if (message is String && message.contains('openInNewTab')) {
-          final urlMatch = RegExp(r'"url"\s*:\s*"([^"]+)"').firstMatch(message);
-          if (urlMatch != null) {
-            final url = urlMatch.group(1);
-            if (url != null && url.isNotEmpty) {
-              onNewWindowRequested?.call(url);
+        if (message is String) {
+          if (message.contains('openInNewTab')) {
+            final urlMatch = RegExp(r'"url"\s*:\s*"([^"]+)"').firstMatch(message);
+            if (urlMatch != null) {
+              final url = urlMatch.group(1);
+              if (url != null && url.isNotEmpty) {
+                onNewWindowRequested?.call(url);
+              }
+            }
+          } else if (message.contains('"type":"download"') || message.contains('"type": "download"')) {
+            final urlMatch = RegExp(r'"url"\s*:\s*"([^"]+)"').firstMatch(message);
+            final fileNameMatch = RegExp(r'"fileName"\s*:\s*"([^"]*)"').firstMatch(message);
+            if (urlMatch != null) {
+              final url = urlMatch.group(1);
+              final fileName = fileNameMatch?.group(1);
+              if (url != null && url.isNotEmpty) {
+                onDownloadRequested?.call(url, fileName?.isNotEmpty == true ? fileName : null);
+              }
             }
           }
         }

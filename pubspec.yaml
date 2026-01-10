@@ -55,6 +55,7 @@ flutter:
   assets:
     - assets/wallpapers/
     - assets/logo/
+    - assets/backgrounds/
 
   # Uncomment when GoogleSans-Bold.ttf is added to assets/fonts/
   # fonts:

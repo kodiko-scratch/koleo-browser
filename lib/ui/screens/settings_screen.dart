@@ -4,7 +4,6 @@ import '../../services/settings_manager.dart';
 import '../theme/theme.dart';
 
 /// Settings screen with modern design.
-/// Requirements: 5.1-5.5
 class SettingsScreen extends StatefulWidget {
   final ISettingsManager settingsManager;
   final VoidCallback? onClose;
@@ -43,6 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF0a0a0a) : const Color(0xFFfafafa);
     final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
+    final accentColor = _getAccentColorValue(_settings.accentColor);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -64,81 +64,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            title: Text(
-              'Настройки',
-              style: KoleoTypography.headline.copyWith(color: textColor, fontSize: 22),
-            ),
+            title: Text('Настройки', style: KoleoTypography.headline.copyWith(color: textColor, fontSize: 22)),
           ),
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _buildSection('Поиск', Icons.search_rounded, [
-                  _buildOptionTile(
-                    'Поисковая система',
-                    _getSearchEngineLabel(_settings.searchEngine),
-                    Icons.language_rounded,
-                    () => _showSearchEngineDialog(),
-                  ),
-                  _buildSwitchTile(
-                    'Подсказки поиска',
-                    'Показывать при вводе',
-                    _settings.showSearchSuggestions,
-                    (v) => _updateSettings(_settings.copyWith(showSearchSuggestions: v)),
-                  ),
+                  _buildOptionTile('Поисковая система', _getSearchEngineLabel(_settings.searchEngine), Icons.language_rounded, () => _showSearchEngineDialog()),
+                  _buildSwitchTile('Подсказки поиска', 'Показывать при вводе', _settings.showSearchSuggestions, (v) => _updateSettings(_settings.copyWith(showSearchSuggestions: v)), accentColor),
                 ]),
                 const SizedBox(height: 16),
                 _buildSection('Безопасность', Icons.shield_rounded, [
-                  _buildOptionTile(
-                    'Уровень защиты',
-                    _getSecurityLevelLabel(_settings.securityLevel),
-                    Icons.security_rounded,
-                    () => _showSecurityDialog(),
-                  ),
-                  _buildOptionTile(
-                    'VPN',
-                    'Обход блокировок',
-                    Icons.vpn_lock_rounded,
-                    () => widget.onOpenVpn?.call(),
-                  ),
+                  _buildOptionTile('Уровень защиты', _getSecurityLevelLabel(_settings.securityLevel), Icons.security_rounded, () => _showSecurityDialog()),
+                  _buildOptionTile('VPN', 'Обход блокировок', Icons.vpn_lock_rounded, () => widget.onOpenVpn?.call()),
                 ]),
                 const SizedBox(height: 16),
                 _buildSection('Внешний вид', Icons.palette_rounded, [
-                  _buildOptionTile(
-                    'Тема',
-                    _getThemeModeLabel(_settings.themeMode),
-                    _getThemeIcon(_settings.themeMode),
-                    () => _showThemeDialog(),
-                  ),
-                  _buildOptionTile(
-                    'Акцентный цвет',
-                    _getAccentColorLabel(_settings.accentColor),
-                    Icons.color_lens_rounded,
-                    () => _showAccentColorDialog(),
-                  ),
-                  _buildOptionTile(
-                    'Стиль вкладок',
-                    _getTabBarStyleLabel(_settings.tabBarStyle),
-                    Icons.tab_rounded,
-                    () => _showTabBarStyleDialog(),
-                  ),
-                  _buildSliderTile(
-                    'Скругление углов',
-                    _settings.cornerRadius,
-                    4.0,
-                    24.0,
-                    (v) => _updateSettings(_settings.copyWith(cornerRadius: v)),
-                  ),
-                  _buildSwitchTile(
-                    'Компактный режим',
-                    'Уменьшенные отступы',
-                    _settings.compactMode,
-                    (v) => _updateSettings(_settings.copyWith(compactMode: v)),
-                  ),
+                  _buildOptionTile('Тема', _getThemeModeLabel(_settings.themeMode), _getThemeIcon(_settings.themeMode), () => _showThemeDialog()),
+                  _buildColorPicker('Акцентный цвет', _settings.accentColor, accentColor),
+                  _buildOptionTile('Фон главного экрана', _getHomeBackgroundLabel(_settings.homeBackground), Icons.wallpaper_rounded, () => _showHomeBackgroundDialog()),
+                  _buildOptionTile('Стиль вкладок', _getTabBarStyleLabel(_settings.tabBarStyle), Icons.tab_rounded, () => _showTabBarStyleDialog()),
+                  _buildSliderTile('Скругление углов', _settings.cornerRadius, 8.0, 24.0, (v) => _updateSettings(_settings.copyWith(cornerRadius: v)), accentColor, suffix: 'px'),
+                  _buildSliderTile('Ширина вкладок', _settings.tabWidth, 120.0, 240.0, (v) => _updateSettings(_settings.copyWith(tabWidth: v)), accentColor, suffix: 'px'),
+                  _buildSwitchTile('Компактный режим', 'Уменьшенные отступы', _settings.compactMode, (v) => _updateSettings(_settings.copyWith(compactMode: v)), accentColor),
+                  _buildSwitchTile('Иконки вкладок', 'Показывать иконки сайтов', _settings.showTabIcons, (v) => _updateSettings(_settings.copyWith(showTabIcons: v)), accentColor),
+                  _buildSwitchTile('Прозрачная шапка', 'Эффект стекла', _settings.transparentHeader, (v) => _updateSettings(_settings.copyWith(transparentHeader: v)), accentColor),
+                  _buildOptionTile('Размытие фона', _getBlurLabel(_settings.backgroundBlur), Icons.blur_on_rounded, () => _showBlurDialog()),
                 ]),
                 const SizedBox(height: 16),
                 _buildSection('О браузере', Icons.info_outline_rounded, [
-                  _buildInfoTile('Версия', '1.0.0'),
+                  _buildInfoTile('Версия', '1.0.4'),
                   _buildInfoTile('Разработчик', 'Koleo'),
                 ]),
               ]),
@@ -171,9 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFe0e0e0),
-            ),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFe0e0e0)),
           ),
           child: Column(
             children: children.asMap().entries.map((e) {
@@ -226,11 +180,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSliderTile(String title, double value, double min, double max, ValueChanged<double> onChanged) {
+  Widget _buildColorPicker(String title, AccentColor selected, Color accentColor) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: KoleoTypography.body.copyWith(color: textColor, fontSize: 15)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: AccentColor.values.map((color) {
+              final isSelected = color == selected;
+              final colorValue = _getAccentColorValue(color);
+              return GestureDetector(
+                onTap: () => _updateSettings(_settings.copyWith(accentColor: color)),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: colorValue,
+                    shape: BoxShape.circle,
+                    border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                    boxShadow: isSelected ? [BoxShadow(color: colorValue.withValues(alpha: 0.5), blurRadius: 8, spreadRadius: 2)] : null,
+                  ),
+                  child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliderTile(String title, double value, double min, double max, ValueChanged<double> onChanged, Color accentColor, {String suffix = ''}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
     final secondaryColor = isDark ? Colors.white60 : const Color(0xFF666666);
-    final accentColor = isDark ? KoleoColors.darkAccent : KoleoColors.lightAccent;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -241,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title, style: KoleoTypography.body.copyWith(color: textColor, fontSize: 15)),
-              Text('${value.round()}px', style: KoleoTypography.caption.copyWith(color: secondaryColor, fontSize: 13)),
+              Text('${value.round()}$suffix', style: KoleoTypography.caption.copyWith(color: secondaryColor, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 8),
@@ -251,24 +243,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               inactiveTrackColor: accentColor.withValues(alpha: 0.2),
               thumbColor: accentColor,
               overlayColor: accentColor.withValues(alpha: 0.1),
+              trackHeight: 4,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
             ),
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
+            child: Slider(value: value, min: min, max: max, onChanged: onChanged),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSwitchTile(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+  Widget _buildSwitchTile(String title, String subtitle, bool value, ValueChanged<bool> onChanged, Color accentColor) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
     final secondaryColor = isDark ? Colors.white60 : const Color(0xFF666666);
-    final accentColor = isDark ? KoleoColors.darkAccent : KoleoColors.lightAccent;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -286,8 +274,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: accentColor,
-            activeTrackColor: accentColor.withValues(alpha: 0.4),
+            activeTrackColor: accentColor,
+            inactiveTrackColor: isDark ? Colors.white24 : Colors.black12,
+            thumbColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) return Colors.white;
+              return isDark ? Colors.white70 : Colors.white;
+            }),
           ),
         ],
       ),
@@ -313,120 +305,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildDivider() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Divider(
-      height: 1,
-      indent: 16,
-      endIndent: 16,
-      color: isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFe8e8e8),
-    );
+    return Divider(height: 1, indent: 16, endIndent: 16, color: isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFe8e8e8));
   }
 
   void _showSearchEngineDialog() => _showDialog<SearchEngineType>(
-    'Поисковая система',
-    SearchEngineType.values,
-    _settings.searchEngine,
-    _getSearchEngineLabel,
+    'Поисковая система', SearchEngineType.values, _settings.searchEngine, _getSearchEngineLabel,
     (v) => _updateSettings(_settings.copyWith(searchEngine: v)),
   );
 
   void _showSecurityDialog() => _showDialog<SecurityLevel>(
-    'Уровень защиты',
-    SecurityLevel.values,
-    _settings.securityLevel,
-    _getSecurityLevelLabel,
+    'Уровень защиты', SecurityLevel.values, _settings.securityLevel, _getSecurityLevelLabel,
     (v) => _updateSettings(_settings.copyWith(securityLevel: v)),
   );
 
   void _showThemeDialog() => _showDialog<ThemeMode>(
-    'Тема оформления',
-    ThemeMode.values,
-    _settings.themeMode,
-    _getThemeModeLabel,
+    'Тема оформления', ThemeMode.values, _settings.themeMode, _getThemeModeLabel,
     (v) => _updateSettings(_settings.copyWith(themeMode: v)),
   );
 
-  void _showAccentColorDialog() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1a1a1a) : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.only(top: 12, bottom: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Акцентный цвет', style: KoleoTypography.headline.copyWith(color: textColor, fontSize: 18)),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: AccentColor.values.map((color) {
-                  final isSelected = color == _settings.accentColor;
-                  return GestureDetector(
-                    onTap: () {
-                      _updateSettings(_settings.copyWith(accentColor: color));
-                      Navigator.pop(ctx);
-                    },
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: _getAccentColorValue(color),
-                        shape: BoxShape.circle,
-                        border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
-                        boxShadow: isSelected ? [
-                          BoxShadow(
-                            color: _getAccentColorValue(color).withValues(alpha: 0.5),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ] : null,
-                      ),
-                      child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showTabBarStyleDialog() => _showDialog<TabBarStyle>(
-    'Стиль вкладок',
-    TabBarStyle.values,
-    _settings.tabBarStyle,
-    _getTabBarStyleLabel,
+    'Стиль вкладок', TabBarStyle.values, _settings.tabBarStyle, _getTabBarStyleLabel,
     (v) => _updateSettings(_settings.copyWith(tabBarStyle: v)),
+  );
+
+  void _showBlurDialog() => _showDialog<BackgroundBlur>(
+    'Размытие фона', BackgroundBlur.values, _settings.backgroundBlur, _getBlurLabel,
+    (v) => _updateSettings(_settings.copyWith(backgroundBlur: v)),
+  );
+
+  void _showHomeBackgroundDialog() => _showDialog<HomeBackgroundType>(
+    'Фон главного экрана', HomeBackgroundType.values, _settings.homeBackground, _getHomeBackgroundLabel,
+    (v) => _updateSettings(_settings.copyWith(homeBackground: v)),
   );
 
   void _showDialog<T>(String title, List<T> items, T selected, String Function(T) label, ValueChanged<T> onSelect) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1a1a1a) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
-    final accentColor = isDark ? KoleoColors.darkAccent : KoleoColors.lightAccent;
+    final accentColor = _getAccentColorValue(_settings.accentColor);
 
     showModalBottomSheet(
       context: context,
@@ -441,25 +357,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 16),
             Text(title, style: KoleoTypography.headline.copyWith(color: textColor, fontSize: 18)),
             const SizedBox(height: 8),
             ...items.map((item) => Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  onSelect(item);
-                  Navigator.pop(ctx);
-                },
+                onTap: () { onSelect(item); Navigator.pop(ctx); },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   child: Row(
@@ -503,14 +408,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ThemeMode.system => Icons.brightness_auto_rounded,
   };
 
-  String _getAccentColorLabel(AccentColor c) => switch (c) {
-    AccentColor.blue => 'Синий',
-    AccentColor.purple => 'Фиолетовый',
-    AccentColor.green => 'Зелёный',
-    AccentColor.orange => 'Оранжевый',
-    AccentColor.red => 'Красный',
-    AccentColor.pink => 'Розовый',
-    AccentColor.teal => 'Бирюзовый',
+  String _getTabBarStyleLabel(TabBarStyle s) => switch (s) {
+    TabBarStyle.standard => 'Стандартный',
+    TabBarStyle.compact => 'Компактный',
+    TabBarStyle.floating => 'Плавающий',
+  };
+
+  String _getBlurLabel(BackgroundBlur b) => switch (b) {
+    BackgroundBlur.none => 'Отключено',
+    BackgroundBlur.light => 'Лёгкое',
+    BackgroundBlur.medium => 'Среднее',
+    BackgroundBlur.heavy => 'Сильное',
+  };
+
+  String _getHomeBackgroundLabel(HomeBackgroundType t) => switch (t) {
+    HomeBackgroundType.animatedGradient => 'Анимированный градиент',
+    HomeBackgroundType.staticGradient => 'Статичный градиент',
+    HomeBackgroundType.image => 'Фото природы',
   };
 
   Color _getAccentColorValue(AccentColor c) => switch (c) {
@@ -521,11 +435,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
     AccentColor.red => const Color(0xFFf44336),
     AccentColor.pink => const Color(0xFFe91e63),
     AccentColor.teal => const Color(0xFF009688),
-  };
-
-  String _getTabBarStyleLabel(TabBarStyle s) => switch (s) {
-    TabBarStyle.standard => 'Стандартный',
-    TabBarStyle.compact => 'Компактный',
-    TabBarStyle.floating => 'Плавающий',
   };
 }
