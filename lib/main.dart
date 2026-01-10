@@ -15,8 +15,19 @@ import 'ui/theme/theme.dart';
 /// Alias for Flutter's ThemeMode to avoid conflict with AppSettings.ThemeMode
 typedef MaterialThemeMode = material.ThemeMode;
 
-void main() async {
+/// Global initial URL from command line arguments
+String? _initialUrl;
+
+void main(List<String> args) async {
   material.WidgetsFlutterBinding.ensureInitialized();
+  
+  // Check for URL in command line arguments
+  if (args.isNotEmpty) {
+    final arg = args.first;
+    if (arg.startsWith('http://') || arg.startsWith('https://')) {
+      _initialUrl = arg;
+    }
+  }
   
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
@@ -24,7 +35,7 @@ void main() async {
   // Initialize SettingsManager
   final settingsManager = await SettingsManager.createWithPrefs(prefs);
   
-  material.runApp(KoleoApp(settingsManager: settingsManager));
+  material.runApp(KoleoApp(settingsManager: settingsManager, initialUrl: _initialUrl));
 }
 
 /// Main application widget for Koleo Browser.
@@ -33,10 +44,12 @@ void main() async {
 /// Requirements: all
 class KoleoApp extends material.StatefulWidget {
   final SettingsManager settingsManager;
+  final String? initialUrl;
 
   const KoleoApp({
     super.key,
     required this.settingsManager,
+    this.initialUrl,
   });
 
   @override
@@ -147,6 +160,7 @@ class _KoleoAppState extends material.State<KoleoApp> {
           updateService: _updateService,
           downloadService: _downloadService,
           settingsManager: widget.settingsManager,
+          initialUrl: widget.initialUrl,
         ),
       ),
     );
@@ -166,6 +180,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
   final UpdateService updateService;
   final DownloadService downloadService;
   final SettingsManager settingsManager;
+  final String? initialUrl;
 
   const KoleoBrowserShell({
     super.key,
@@ -177,6 +192,7 @@ class KoleoBrowserShell extends material.StatefulWidget {
     required this.updateService,
     required this.downloadService,
     required this.settingsManager,
+    this.initialUrl,
   });
 
   @override
@@ -257,6 +273,7 @@ class _KoleoBrowserShellState extends material.State<KoleoBrowserShell> {
       vpnService: widget.vpnService,
       onOpenSettings: _openSettings,
       onOpenVpn: _openVpn,
+      initialUrl: widget.initialUrl,
     );
   }
 }
@@ -269,6 +286,7 @@ class MainScreenWithSettings extends material.StatelessWidget {
   final VpnService vpnService;
   final material.VoidCallback onOpenSettings;
   final material.VoidCallback onOpenVpn;
+  final String? initialUrl;
 
   const MainScreenWithSettings({
     super.key,
@@ -278,6 +296,7 @@ class MainScreenWithSettings extends material.StatelessWidget {
     required this.vpnService,
     required this.onOpenSettings,
     required this.onOpenVpn,
+    this.initialUrl,
   });
 
   @override
@@ -288,6 +307,7 @@ class MainScreenWithSettings extends material.StatelessWidget {
       securitySystem: securitySystem,
       onOpenSettings: onOpenSettings,
       onOpenVpn: onOpenVpn,
+      initialUrl: initialUrl,
     );
   }
 }

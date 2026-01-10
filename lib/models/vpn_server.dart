@@ -9,6 +9,7 @@ class VpnServer {
   final Map<String, dynamic> config;
   int? ping; // ms, null if not tested
   bool isActive;
+  bool isFavorite;
 
   VpnServer({
     required this.id,
@@ -20,6 +21,7 @@ class VpnServer {
     required this.config,
     this.ping,
     this.isActive = false,
+    this.isFavorite = false,
   });
 
   String get displayName => name.isNotEmpty ? name : '$address:$port';
@@ -40,6 +42,7 @@ class VpnServer {
     'config': config,
     'ping': ping,
     'isActive': isActive,
+    'isFavorite': isFavorite,
   };
 
   factory VpnServer.fromJson(Map<String, dynamic> json) => VpnServer(
@@ -52,6 +55,7 @@ class VpnServer {
     config: json['config'] as Map<String, dynamic>? ?? {},
     ping: json['ping'] as int?,
     isActive: json['isActive'] as bool? ?? false,
+    isFavorite: json['isFavorite'] as bool? ?? false,
   );
 }
 

@@ -22,6 +22,7 @@ class _VpnScreenState extends State<VpnScreen> {
   bool _isPinging = false;
   String _searchQuery = '';
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _VpnScreenState extends State<VpnScreen> {
   void dispose() {
     widget.vpnService.removeListener(_onVpnChanged);
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -290,6 +292,7 @@ class _VpnScreenState extends State<VpnScreen> {
 
   Widget _buildServerList(Color cardColor, Color textColor) {
     final subscriptions = widget.vpnService.subscriptions;
+    final favorites = widget.vpnService.favoriteServers;
 
     if (subscriptions.isEmpty) {
       return Center(
@@ -313,13 +316,57 @@ class _VpnScreenState extends State<VpnScreen> {
       );
     }
 
-    return ListView.builder(
+    return ListView(
+      controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: subscriptions.length,
-      itemBuilder: (context, index) {
-        final sub = subscriptions[index];
-        return _buildSubscriptionCard(sub, cardColor, textColor);
-      },
+      children: [
+        // Favorites section
+        if (favorites.isNotEmpty && _searchQuery.isEmpty) ...[
+          _buildFavoritesCard(favorites, cardColor, textColor),
+          const SizedBox(height: 12),
+        ],
+        // Subscriptions
+        ...subscriptions.map((sub) => _buildSubscriptionCard(sub, cardColor, textColor)),
+      ],
+    );
+  }
+
+  Widget _buildFavoritesCard(List<VpnServer> favorites, Color cardColor, Color textColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.star, color: Colors.amber, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Избранные',
+                  style: KoleoTypography.body.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${favorites.length} серверов',
+                  style: KoleoTypography.caption.copyWith(
+                    color: textColor.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...favorites.map((server) => _buildServerTile(server, textColor)),
+        ],
+      ),
     );
   }
 
@@ -436,6 +483,18 @@ class _VpnScreenState extends State<VpnScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Favorite button
+          IconButton(
+            icon: Icon(
+              server.isFavorite ? Icons.star : Icons.star_border,
+              color: server.isFavorite ? Colors.amber : textColor.withValues(alpha: 0.4),
+              size: 20,
+            ),
+            onPressed: () => widget.vpnService.toggleFavorite(server.id),
+            tooltip: server.isFavorite ? 'Убрать из избранного' : 'В избранное',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
           // Ping
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

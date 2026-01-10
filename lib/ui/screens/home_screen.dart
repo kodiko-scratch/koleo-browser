@@ -10,8 +10,9 @@ import '../theme/koleo_typography.dart';
 /// Home screen with animated background, time display and search bar.
 class HomeScreen extends StatefulWidget {
   final ValueChanged<String>? onSearch;
+  final ValueChanged<String>? onQuickLinkTap;
 
-  const HomeScreen({super.key, this.onSearch});
+  const HomeScreen({super.key, this.onSearch, this.onQuickLinkTap});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -200,8 +201,190 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           const SizedBox(height: 48),
           _buildSearchBar(),
           const SizedBox(height: 24),
+          _buildQuickLinks(settings, settingsManager),
+          const SizedBox(height: 24),
           _buildThemeSelector(theme, settings, settingsManager),
           const Spacer(flex: 3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickLinks(AppSettings settings, SettingsManager settingsManager) {
+    final links = settings.quickLinks.isEmpty ? QuickLink.defaults : settings.quickLinks;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 700),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ...links.map((link) => _buildQuickLinkItem(link, settings, settingsManager)),
+              _buildAddQuickLinkButton(settings, settingsManager),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickLinkItem(QuickLink link, AppSettings settings, SettingsManager settingsManager) {
+    final domain = Uri.tryParse(link.url)?.host ?? link.url;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => widget.onQuickLinkTap?.call(link.url),
+          onLongPress: () => _showQuickLinkMenu(link, settings, settingsManager),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      link.name.isNotEmpty ? link.name[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  domain,
+                  style: KoleoTypography.caption.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddQuickLinkButton(AppSettings settings, SettingsManager settingsManager) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => _showAddQuickLinkDialog(settings, settingsManager),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Icon(
+              Icons.add,
+              color: Colors.white.withValues(alpha: 0.5),
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showQuickLinkMenu(QuickLink link, AppSettings settings, SettingsManager settingsManager) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(link.name),
+        content: Text('Удалить "${link.name}" из быстрых ссылок?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              final newLinks = settings.quickLinks.isEmpty 
+                  ? List<QuickLink>.from(QuickLink.defaults)
+                  : List<QuickLink>.from(settings.quickLinks);
+              newLinks.removeWhere((l) => l.url == link.url);
+              settingsManager.saveSettings(settings.copyWith(quickLinks: newLinks));
+              Navigator.pop(ctx);
+            },
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddQuickLinkDialog(AppSettings settings, SettingsManager settingsManager) {
+    final nameController = TextEditingController();
+    final urlController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Добавить ссылку'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Название',
+                hintText: 'Google',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: urlController,
+              decoration: const InputDecoration(
+                labelText: 'URL',
+                hintText: 'https://google.com',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (urlController.text.isNotEmpty) {
+                var url = urlController.text.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                  url = 'https://$url';
+                }
+                final newLink = QuickLink(
+                  name: nameController.text.isEmpty ? Uri.tryParse(url)?.host ?? url : nameController.text,
+                  url: url,
+                );
+                final newLinks = settings.quickLinks.isEmpty 
+                    ? List<QuickLink>.from(QuickLink.defaults)
+                    : List<QuickLink>.from(settings.quickLinks);
+                newLinks.add(newLink);
+                settingsManager.saveSettings(settings.copyWith(quickLinks: newLinks));
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Добавить'),
+          ),
         ],
       ),
     );

@@ -25,6 +25,7 @@ class VpnService extends ChangeNotifier {
 
   List<VpnSubscription> get subscriptions => List.unmodifiable(_subscriptions);
   List<VpnServer> get allServers => _subscriptions.expand((s) => s.servers).toList();
+  List<VpnServer> get favoriteServers => allServers.where((s) => s.isFavorite).toList();
   VpnServer? get activeServer => _activeServer;
   bool get isConnected => _isConnected;
   bool get isConnecting => _isConnecting;
@@ -404,6 +405,20 @@ class VpnService extends ChangeNotifier {
       });
     }
     notifyListeners();
+  }
+
+  /// Toggle favorite status
+  Future<void> toggleFavorite(String serverId) async {
+    for (final sub in _subscriptions) {
+      for (final server in sub.servers) {
+        if (server.id == serverId) {
+          server.isFavorite = !server.isFavorite;
+          await _saveSubscriptions();
+          notifyListeners();
+          return;
+        }
+      }
+    }
   }
 
   /// Generate sing-box config

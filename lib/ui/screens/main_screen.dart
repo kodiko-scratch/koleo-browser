@@ -22,6 +22,7 @@ class MainScreen extends StatefulWidget {
   final SecuritySystem securitySystem;
   final VoidCallback? onOpenSettings;
   final VoidCallback? onOpenVpn;
+  final String? initialUrl;
 
   const MainScreen({
     super.key,
@@ -30,6 +31,7 @@ class MainScreen extends StatefulWidget {
     required this.securitySystem,
     this.onOpenSettings,
     this.onOpenVpn,
+    this.initialUrl,
   });
 
   @override
@@ -42,6 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   bool _webViewReady = false;
   bool _showWebView = false;
   bool _showDownloads = false;
+  bool _initialUrlLoaded = false;
 
   @override
   void initState() {
@@ -75,6 +78,12 @@ class _MainScreenState extends State<MainScreen> {
     final success = await _navigationController.initialize();
     if (mounted) {
       setState(() => _webViewReady = success);
+      
+      // Load initial URL if provided
+      if (success && widget.initialUrl != null && !_initialUrlLoaded) {
+        _initialUrlLoaded = true;
+        _loadUrl(widget.initialUrl!);
+      }
     }
   }
 
@@ -509,7 +518,10 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildContent() {
     if (!_showWebView || _currentUrl.isEmpty) {
-      return HomeScreen(onSearch: _onUrlSubmitted);
+      return HomeScreen(
+        onSearch: _onUrlSubmitted,
+        onQuickLinkTap: _loadUrl,
+      );
     }
     if (!_webViewReady) {
       return _buildLoadingWebView();

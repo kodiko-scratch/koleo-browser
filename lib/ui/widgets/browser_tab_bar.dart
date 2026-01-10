@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
@@ -52,8 +53,7 @@ class BrowserTabBar extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: ListView(
-                scrollDirection: Axis.horizontal,
+              child: _ScrollableTabList(
                 children: _buildTabsWithGroups(context),
               ),
             ),
@@ -605,6 +605,49 @@ class _NewTabButtonState extends State<_NewTabButton> {
             color: _isHovered ? widget.accentColor : (isDark ? Colors.white70 : Colors.black54),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Scrollable tab list with mouse wheel support
+class _ScrollableTabList extends StatefulWidget {
+  final List<Widget> children;
+
+  const _ScrollableTabList({required this.children});
+
+  @override
+  State<_ScrollableTabList> createState() => _ScrollableTabListState();
+}
+
+class _ScrollableTabListState extends State<_ScrollableTabList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll(PointerSignalEvent event) {
+    if (event is PointerScrollEvent) {
+      final delta = event.scrollDelta.dy;
+      final newOffset = _scrollController.offset + delta;
+      _scrollController.jumpTo(
+        newOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerSignal: _handleScroll,
+      child: ListView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        physics: const ClampingScrollPhysics(),
+        children: widget.children,
       ),
     );
   }

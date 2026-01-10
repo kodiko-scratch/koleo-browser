@@ -60,6 +60,39 @@ enum HomeBackgroundType {
   image,
 }
 
+/// Quick link model for home screen.
+class QuickLink {
+  final String name;
+  final String url;
+  final String? favicon;
+
+  const QuickLink({
+    required this.name,
+    required this.url,
+    this.favicon,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'url': url,
+    'favicon': favicon,
+  };
+
+  factory QuickLink.fromJson(Map<String, dynamic> json) => QuickLink(
+    name: json['name'] as String,
+    url: json['url'] as String,
+    favicon: json['favicon'] as String?,
+  );
+
+  /// Default quick links
+  static const List<QuickLink> defaults = [
+    QuickLink(name: 'Google', url: 'https://google.com'),
+    QuickLink(name: 'YouTube', url: 'https://youtube.com'),
+    QuickLink(name: 'GitHub', url: 'https://github.com'),
+    QuickLink(name: 'ChatGPT', url: 'https://chatgpt.com'),
+  ];
+}
+
 /// Application settings model.
 ///
 /// Stores user preferences that persist between sessions.
@@ -79,6 +112,7 @@ class AppSettings {
   final HomeBackgroundType homeBackground;
   final int gradientThemeIndex;
   final int backgroundImageIndex;
+  final List<QuickLink> quickLinks;
 
   const AppSettings({
     this.searchEngine = SearchEngineType.koleo,
@@ -96,6 +130,7 @@ class AppSettings {
     this.homeBackground = HomeBackgroundType.animatedGradient,
     this.gradientThemeIndex = 0,
     this.backgroundImageIndex = 0,
+    this.quickLinks = const [],
   });
 
   /// Creates a copy of this settings with the given fields replaced.
@@ -115,6 +150,7 @@ class AppSettings {
     HomeBackgroundType? homeBackground,
     int? gradientThemeIndex,
     int? backgroundImageIndex,
+    List<QuickLink>? quickLinks,
   }) {
     return AppSettings(
       searchEngine: searchEngine ?? this.searchEngine,
@@ -132,6 +168,7 @@ class AppSettings {
       homeBackground: homeBackground ?? this.homeBackground,
       gradientThemeIndex: gradientThemeIndex ?? this.gradientThemeIndex,
       backgroundImageIndex: backgroundImageIndex ?? this.backgroundImageIndex,
+      quickLinks: quickLinks ?? this.quickLinks,
     );
   }
 
@@ -153,6 +190,7 @@ class AppSettings {
       'homeBackground': homeBackground.name,
       'gradientThemeIndex': gradientThemeIndex,
       'backgroundImageIndex': backgroundImageIndex,
+      'quickLinks': quickLinks.map((l) => l.toJson()).toList(),
     };
   }
 
@@ -195,6 +233,9 @@ class AppSettings {
       ),
       gradientThemeIndex: json['gradientThemeIndex'] as int? ?? 0,
       backgroundImageIndex: json['backgroundImageIndex'] as int? ?? 0,
+      quickLinks: (json['quickLinks'] as List<dynamic>?)
+          ?.map((l) => QuickLink.fromJson(l as Map<String, dynamic>))
+          .toList() ?? [],
     );
   }
 
