@@ -94,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ]),
                 const SizedBox(height: 16),
                 _buildSection('О браузере', Icons.info_outline_rounded, [
-                  _buildInfoTile('Версия', '1.0.4'),
+                  _buildInfoTile('Версия', '1.0.5'),
                   _buildInfoTile('Разработчик', 'Koleo'),
                 ]),
               ]),

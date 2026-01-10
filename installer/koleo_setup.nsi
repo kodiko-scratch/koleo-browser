@@ -20,15 +20,11 @@ RequestExecutionLevel admin
 
 !insertmacro MUI_LANGUAGE "Russian"
 
-; Silent install with auto-launch support
-Function .onInit
-    ${GetParameters} $R0
-    ${GetOptions} $R0 "/LAUNCH" $R1
-    IfErrors +2 0
-    StrCpy $R9 "1" ; Flag to launch after install
-FunctionEnd
-
 Section "Install"
+    ; Kill running instance first
+    nsExec::ExecToLog 'taskkill /F /IM koleo_browser.exe'
+    Sleep 500
+    
     SetOutPath "$INSTDIR"
     File /r "..\build\windows\x64\runner\Release\*.*"
     
@@ -44,7 +40,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\KoleoBrowser" "UninstallString" "$INSTDIR\uninstall.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\KoleoBrowser" "DisplayIcon" "$INSTDIR\koleo_browser.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\KoleoBrowser" "Publisher" "Koleo"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\KoleoBrowser" "DisplayVersion" "1.0.0"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\KoleoBrowser" "DisplayVersion" "1.0.4"
     
     ; Register as browser
     WriteRegStr HKLM "Software\Clients\StartMenuInternet\KoleoBrowser" "" "Koleo Browser"
@@ -65,9 +61,8 @@ Section "Install"
     ; Register in RegisteredApplications
     WriteRegStr HKLM "Software\RegisteredApplications" "Koleo Browser" "Software\Clients\StartMenuInternet\KoleoBrowser\Capabilities"
     
-    ; Auto-launch after silent install
-    IfSilent 0 +3
-    StrCmp $R9 "1" 0 +2
+    ; Always launch after silent install
+    IfSilent 0 +2
     Exec "$INSTDIR\koleo_browser.exe"
 SectionEnd
 

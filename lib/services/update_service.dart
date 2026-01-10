@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Service for checking and applying updates
 class UpdateService extends ChangeNotifier {
-  static const String _currentVersion = '1.0.4';
+  static const String _currentVersion = '1.0.5';
   static const String _githubRepo = 'kodiko-scratch/koleo-browser';
   static const String _releasesUrl = 'https://api.github.com/repos/$_githubRepo/releases/latest';
   
@@ -137,8 +137,8 @@ class UpdateService extends ChangeNotifier {
   /// Install the downloaded update
   Future<void> _installUpdate(String filePath) async {
     if (Platform.isWindows) {
-      // Run installer silently with auto-launch flag and exit app
-      await Process.start(filePath, ['/S', '/LAUNCH'], mode: ProcessStartMode.detached);
+      // Run installer silently - it will auto-launch after install
+      await Process.start(filePath, ['/S'], mode: ProcessStartMode.detached);
       exit(0);
     } else if (Platform.isMacOS) {
       // Mount DMG and open it
