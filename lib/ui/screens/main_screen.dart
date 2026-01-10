@@ -253,41 +253,66 @@ class _MainScreenState extends State<MainScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF0a0a0a) : const Color(0xFFf5f5f5);
     final contentBgColor = isDark ? const Color(0xFF1a1a1a) : Colors.white;
+    final islandColor = isDark ? const Color(0xFF1a1a1a) : const Color(0xFFe8e8e8);
     final navState = _navigationController.currentState;
 
     return Scaffold(
       backgroundColor: backgroundColor,
       body: Column(
         children: [
-          BrowserTabBar(
-            tabs: widget.tabManager.tabs,
-            groups: widget.tabManager.groups,
-            activeTabId: widget.tabManager.activeTabId,
-            onTabSelected: _switchToTab,
-            onTabClosed: _closeTab,
-            onNewTab: _createNewTab,
-            tabManager: widget.tabManager,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: AddressBar(
-              currentUrl: _currentUrl,
-              isLoading: navState.isLoading,
-              loadingProgress: navState.progress,
-              canGoBack: _navigationController.canGoBack,
-              canGoForward: _navigationController.canGoForward,
-              onBack: _navigationController.canGoBack ? _goBack : null,
-              onForward: _navigationController.canGoForward ? _goForward : null,
-              onReload: _reload,
-              onSubmitted: _onUrlSubmitted,
-              onSettings: widget.onOpenSettings,
-              vpnService: context.watch<VpnService>(),
-              onVpnTap: widget.onOpenVpn,
+          // Floating Island - combined tab bar and address bar
+          Container(
+            margin: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+            decoration: BoxDecoration(
+              color: islandColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Tab bar
+                BrowserTabBar(
+                  tabs: widget.tabManager.tabs,
+                  groups: widget.tabManager.groups,
+                  activeTabId: widget.tabManager.activeTabId,
+                  onTabSelected: _switchToTab,
+                  onTabClosed: _closeTab,
+                  onNewTab: _createNewTab,
+                  tabManager: widget.tabManager,
+                ),
+                // Address bar inside island
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                  child: AddressBar(
+                    currentUrl: _currentUrl,
+                    isLoading: navState.isLoading,
+                    loadingProgress: navState.progress,
+                    canGoBack: _navigationController.canGoBack,
+                    canGoForward: _navigationController.canGoForward,
+                    onBack: _navigationController.canGoBack ? _goBack : null,
+                    onForward: _navigationController.canGoForward ? _goForward : null,
+                    onReload: _reload,
+                    onSubmitted: _onUrlSubmitted,
+                    onSettings: widget.onOpenSettings,
+                    vpnService: context.watch<VpnService>(),
+                    onVpnTap: widget.onOpenVpn,
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 8),
+          // Content
           Expanded(
             child: Container(
-              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 color: contentBgColor,

@@ -110,6 +110,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _getThemeIcon(_settings.themeMode),
                     () => _showThemeDialog(),
                   ),
+                  _buildOptionTile(
+                    'Акцентный цвет',
+                    _getAccentColorLabel(_settings.accentColor),
+                    Icons.color_lens_rounded,
+                    () => _showAccentColorDialog(),
+                  ),
+                  _buildOptionTile(
+                    'Стиль вкладок',
+                    _getTabBarStyleLabel(_settings.tabBarStyle),
+                    Icons.tab_rounded,
+                    () => _showTabBarStyleDialog(),
+                  ),
+                  _buildSliderTile(
+                    'Скругление углов',
+                    _settings.cornerRadius,
+                    4.0,
+                    24.0,
+                    (v) => _updateSettings(_settings.copyWith(cornerRadius: v)),
+                  ),
+                  _buildSwitchTile(
+                    'Компактный режим',
+                    'Уменьшенные отступы',
+                    _settings.compactMode,
+                    (v) => _updateSettings(_settings.copyWith(compactMode: v)),
+                  ),
                 ]),
                 const SizedBox(height: 16),
                 _buildSection('О браузере', Icons.info_outline_rounded, [
@@ -201,6 +226,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildSliderTile(String title, double value, double min, double max, ValueChanged<double> onChanged) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
+    final secondaryColor = isDark ? Colors.white60 : const Color(0xFF666666);
+    final accentColor = isDark ? KoleoColors.darkAccent : KoleoColors.lightAccent;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: KoleoTypography.body.copyWith(color: textColor, fontSize: 15)),
+              Text('${value.round()}px', style: KoleoTypography.caption.copyWith(color: secondaryColor, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: accentColor,
+              inactiveTrackColor: accentColor.withValues(alpha: 0.2),
+              thumbColor: accentColor,
+              overlayColor: accentColor.withValues(alpha: 0.1),
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSwitchTile(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
@@ -282,6 +345,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
     (v) => _updateSettings(_settings.copyWith(themeMode: v)),
   );
 
+  void _showAccentColorDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1a1a1a) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1a1a1a);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.only(top: 12, bottom: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('Акцентный цвет', style: KoleoTypography.headline.copyWith(color: textColor, fontSize: 18)),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: AccentColor.values.map((color) {
+                  final isSelected = color == _settings.accentColor;
+                  return GestureDetector(
+                    onTap: () {
+                      _updateSettings(_settings.copyWith(accentColor: color));
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: _getAccentColorValue(color),
+                        shape: BoxShape.circle,
+                        border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                        boxShadow: isSelected ? [
+                          BoxShadow(
+                            color: _getAccentColorValue(color).withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ] : null,
+                      ),
+                      child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTabBarStyleDialog() => _showDialog<TabBarStyle>(
+    'Стиль вкладок',
+    TabBarStyle.values,
+    _settings.tabBarStyle,
+    _getTabBarStyleLabel,
+    (v) => _updateSettings(_settings.copyWith(tabBarStyle: v)),
+  );
+
   void _showDialog<T>(String title, List<T> items, T selected, String Function(T) label, ValueChanged<T> onSelect) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF1a1a1a) : Colors.white;
@@ -361,5 +501,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ThemeMode.light => Icons.light_mode_rounded,
     ThemeMode.dark => Icons.dark_mode_rounded,
     ThemeMode.system => Icons.brightness_auto_rounded,
+  };
+
+  String _getAccentColorLabel(AccentColor c) => switch (c) {
+    AccentColor.blue => 'Синий',
+    AccentColor.purple => 'Фиолетовый',
+    AccentColor.green => 'Зелёный',
+    AccentColor.orange => 'Оранжевый',
+    AccentColor.red => 'Красный',
+    AccentColor.pink => 'Розовый',
+    AccentColor.teal => 'Бирюзовый',
+  };
+
+  Color _getAccentColorValue(AccentColor c) => switch (c) {
+    AccentColor.blue => const Color(0xFF4a9eff),
+    AccentColor.purple => const Color(0xFF9c27b0),
+    AccentColor.green => const Color(0xFF4caf50),
+    AccentColor.orange => const Color(0xFFff9800),
+    AccentColor.red => const Color(0xFFf44336),
+    AccentColor.pink => const Color(0xFFe91e63),
+    AccentColor.teal => const Color(0xFF009688),
+  };
+
+  String _getTabBarStyleLabel(TabBarStyle s) => switch (s) {
+    TabBarStyle.standard => 'Стандартный',
+    TabBarStyle.compact => 'Компактный',
+    TabBarStyle.floating => 'Плавающий',
   };
 }

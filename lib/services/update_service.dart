@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Service for checking and applying updates
 class UpdateService extends ChangeNotifier {
-  static const String _currentVersion = '1.0.0';
+  static const String _currentVersion = '1.0.2';
   static const String _githubRepo = 'kodiko-scratch/koleo-browser';
   static const String _releasesUrl = 'https://api.github.com/repos/$_githubRepo/releases/latest';
   

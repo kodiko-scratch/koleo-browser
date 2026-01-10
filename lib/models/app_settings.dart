@@ -2,6 +2,7 @@
 ///
 /// Contains user preferences for search engine, theme, security level,
 /// and other configurable options.
+library;
 
 /// Available search engine options.
 enum SearchEngineType {
@@ -26,6 +27,24 @@ enum SecurityLevel {
   strict,
 }
 
+/// Accent color options.
+enum AccentColor {
+  blue,
+  purple,
+  green,
+  orange,
+  red,
+  pink,
+  teal,
+}
+
+/// Tab bar style options.
+enum TabBarStyle {
+  standard,
+  compact,
+  floating,
+}
+
 /// Application settings model.
 ///
 /// Stores user preferences that persist between sessions.
@@ -34,12 +53,20 @@ class AppSettings {
   final ThemeMode themeMode;
   final SecurityLevel securityLevel;
   final bool showSearchSuggestions;
+  final AccentColor accentColor;
+  final TabBarStyle tabBarStyle;
+  final double cornerRadius;
+  final bool compactMode;
 
   const AppSettings({
     this.searchEngine = SearchEngineType.koleo,
     this.themeMode = ThemeMode.system,
     this.securityLevel = SecurityLevel.standard,
     this.showSearchSuggestions = true,
+    this.accentColor = AccentColor.blue,
+    this.tabBarStyle = TabBarStyle.floating,
+    this.cornerRadius = 16.0,
+    this.compactMode = false,
   });
 
   /// Creates a copy of this settings with the given fields replaced.
@@ -48,12 +75,20 @@ class AppSettings {
     ThemeMode? themeMode,
     SecurityLevel? securityLevel,
     bool? showSearchSuggestions,
+    AccentColor? accentColor,
+    TabBarStyle? tabBarStyle,
+    double? cornerRadius,
+    bool? compactMode,
   }) {
     return AppSettings(
       searchEngine: searchEngine ?? this.searchEngine,
       themeMode: themeMode ?? this.themeMode,
       securityLevel: securityLevel ?? this.securityLevel,
       showSearchSuggestions: showSearchSuggestions ?? this.showSearchSuggestions,
+      accentColor: accentColor ?? this.accentColor,
+      tabBarStyle: tabBarStyle ?? this.tabBarStyle,
+      cornerRadius: cornerRadius ?? this.cornerRadius,
+      compactMode: compactMode ?? this.compactMode,
     );
   }
 
@@ -64,6 +99,10 @@ class AppSettings {
       'themeMode': themeMode.name,
       'securityLevel': securityLevel.name,
       'showSearchSuggestions': showSearchSuggestions,
+      'accentColor': accentColor.name,
+      'tabBarStyle': tabBarStyle.name,
+      'cornerRadius': cornerRadius,
+      'compactMode': compactMode,
     };
   }
 
@@ -83,6 +122,16 @@ class AppSettings {
         orElse: () => SecurityLevel.standard,
       ),
       showSearchSuggestions: json['showSearchSuggestions'] as bool? ?? true,
+      accentColor: AccentColor.values.firstWhere(
+        (e) => e.name == json['accentColor'],
+        orElse: () => AccentColor.blue,
+      ),
+      tabBarStyle: TabBarStyle.values.firstWhere(
+        (e) => e.name == json['tabBarStyle'],
+        orElse: () => TabBarStyle.floating,
+      ),
+      cornerRadius: (json['cornerRadius'] as num?)?.toDouble() ?? 16.0,
+      compactMode: json['compactMode'] as bool? ?? false,
     );
   }
 
@@ -93,17 +142,24 @@ class AppSettings {
         other.searchEngine == searchEngine &&
         other.themeMode == themeMode &&
         other.securityLevel == securityLevel &&
-        other.showSearchSuggestions == showSearchSuggestions;
+        other.showSearchSuggestions == showSearchSuggestions &&
+        other.accentColor == accentColor &&
+        other.tabBarStyle == tabBarStyle &&
+        other.cornerRadius == cornerRadius &&
+        other.compactMode == compactMode;
   }
 
   @override
   int get hashCode {
-    return Object.hash(searchEngine, themeMode, securityLevel, showSearchSuggestions);
+    return Object.hash(searchEngine, themeMode, securityLevel, showSearchSuggestions,
+        accentColor, tabBarStyle, cornerRadius, compactMode);
   }
 
   @override
   String toString() {
     return 'AppSettings(searchEngine: $searchEngine, themeMode: $themeMode, '
-        'securityLevel: $securityLevel, showSearchSuggestions: $showSearchSuggestions)';
+        'securityLevel: $securityLevel, showSearchSuggestions: $showSearchSuggestions, '
+        'accentColor: $accentColor, tabBarStyle: $tabBarStyle, cornerRadius: $cornerRadius, '
+        'compactMode: $compactMode)';
   }
 }
