@@ -1,4 +1,5 @@
 !include "MUI2.nsh"
+!include "FileFunc.nsh"
 
 Name "Koleo Browser"
 OutFile "..\build\installer\KoleoBrowserSetup.exe"
@@ -8,12 +9,24 @@ RequestExecutionLevel admin
 !define MUI_ABORTWARNING
 !define MUI_ICON "..\assets\logo\koleo_logo.ico"
 
+; Finish page - run app after install
+!define MUI_FINISHPAGE_RUN "$INSTDIR\koleo_browser.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "Запустить Koleo Browser"
+
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "Russian"
+
+; Silent install with auto-launch support
+Function .onInit
+    ${GetParameters} $R0
+    ${GetOptions} $R0 "/LAUNCH" $R1
+    IfErrors +2 0
+    StrCpy $R9 "1" ; Flag to launch after install
+FunctionEnd
 
 Section "Install"
     SetOutPath "$INSTDIR"
@@ -51,6 +64,11 @@ Section "Install"
     
     ; Register in RegisteredApplications
     WriteRegStr HKLM "Software\RegisteredApplications" "Koleo Browser" "Software\Clients\StartMenuInternet\KoleoBrowser\Capabilities"
+    
+    ; Auto-launch after silent install
+    IfSilent 0 +3
+    StrCmp $R9 "1" 0 +2
+    Exec "$INSTDIR\koleo_browser.exe"
 SectionEnd
 
 Section "Uninstall"
